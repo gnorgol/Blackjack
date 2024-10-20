@@ -8,8 +8,8 @@ public class Deck
     public Deck()
     {
         cards = new List<Card>();
-        string[] suits = { "Hearts", "Diamonds", "Clubs", "Spades" };
-        string[] ranks = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King", "Ace" };
+        string[] suits = { "Heart", "Diamond", "Club", "Spade" };
+        string[] ranks = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" }; // J = Jack, Q = Queen, K = King, A = Ace
         int[] values = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
 
         for (int i = 0; i < suits.Length; i++)

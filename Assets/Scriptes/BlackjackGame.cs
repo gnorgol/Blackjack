@@ -1,14 +1,21 @@
-using UnityEngine;
+Ôªøusing UnityEngine;
+using UnityEngine.UI;
 
 public class BlackjackGame : MonoBehaviour
 {
+    public GameObject cardPrefab; // Assignez le prefab de la carte dans l'inspecteur
+    public Transform spawnCardPlayer; // Assignez les GameObjects SpawnCardPlayer et SpawnCardDealer
+    public Transform spawnCardDealer;
+    public float cardOffset = 100f; // D√©calage entre les cartes
+
     private Deck deck;
     private Player player;
     private Player dealer;
+    private int playerCardCount = 0;
+    private int dealerCardCount = 0;
 
     void Start()
     {
-        // Initialisation
         deck = new Deck();
         player = new Player("Player");
         dealer = new Player("Dealer");
@@ -19,16 +26,51 @@ public class BlackjackGame : MonoBehaviour
     void StartGame()
     {
         // Distribution initiale des cartes
-        player.AddCardToHand(deck.DrawCard());
-        player.AddCardToHand(deck.DrawCard());
+        DrawCardForPlayer();
+        DrawCardForPlayer();
 
-        dealer.AddCardToHand(deck.DrawCard());
-        dealer.AddCardToHand(deck.DrawCard());
+        DrawCardForDealer();
+        DrawCardForDealer();
 
         DisplayHands();
-
-        // VÈrification des rÈsultats initiaux
         CheckWinCondition();
+    }
+
+    void DrawCardForPlayer()
+    {
+        Card card = deck.DrawCard();
+        player.AddCardToHand(card);
+        SpawnCardVisual(card, spawnCardPlayer, playerCardCount);
+        playerCardCount++;
+    }
+
+    void DrawCardForDealer()
+    {
+        Card card = deck.DrawCard();
+        dealer.AddCardToHand(card);
+        SpawnCardVisual(card, spawnCardDealer, dealerCardCount);
+        dealerCardCount++;
+    }
+
+    void SpawnCardVisual(Card card, Transform spawnPoint, int cardIndex)
+    {
+        // Instancie le prefab de la carte √† l'emplacement sp√©cifi√©
+        GameObject cardObject = Instantiate(cardPrefab, spawnPoint.position, Quaternion.identity);
+        cardObject.GetComponent<RectTransform>().anchoredPosition += new Vector2(cardIndex * cardOffset, 0);
+        //SpriteRenderer spriteRenderer = cardObject.GetComponent<SpriteRenderer>();
+        Image spriteRenderer = cardObject.GetComponent<Image>();
+
+        // Change le sprite pour correspondre √† la carte tir√©e
+        Debug.Log($"Spirte : " + GetCardSprite(card));
+        spriteRenderer.sprite = GetCardSprite(card);
+
+        // Set Parent to the spawn point
+        cardObject.transform.SetParent(spawnPoint);
+    }
+
+    Sprite GetCardSprite(Card card)
+    {
+        return Resources.Load<Sprite>($"Sprites/Cards/{card.Suit}_{card.Rank}");
     }
 
     void DisplayHands()
@@ -59,23 +101,21 @@ public class BlackjackGame : MonoBehaviour
             Debug.Log("Dealer busts! Player wins!");
         }
     }
-
-    // MÈthode pour tirer une carte pour le joueur
     public void PlayerHit()
     {
         player.AddCardToHand(deck.DrawCard());
         DisplayHands();
         CheckWinCondition();
+        //Display new card
+        DrawCardForPlayer();
     }
-
-    // MÈthode pour rester (le tour passe au dealer)
+    // MÔøΩthode pour rester (le tour passe au dealer)
     public void PlayerStand()
     {
         DealerTurn();
         DisplayHands();
         DetermineWinner();
     }
-
     void DealerTurn()
     {
         while (dealer.GetHandValue() < 17)
@@ -83,12 +123,10 @@ public class BlackjackGame : MonoBehaviour
             dealer.AddCardToHand(deck.DrawCard());
         }
     }
-
     void DetermineWinner()
     {
         int playerValue = player.GetHandValue();
         int dealerValue = dealer.GetHandValue();
-
         if (dealerValue > 21 || playerValue > dealerValue)
         {
             Debug.Log("Player wins!");
