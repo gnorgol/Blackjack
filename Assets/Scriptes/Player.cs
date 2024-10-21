@@ -33,7 +33,7 @@ public class Player
         // Adjust for Aces if the total is over 21
         while (totalValue > 21 && aceCount > 0)
         {
-            totalValue -= 10;
+            totalValue -= 11;
             aceCount--;
         }
 

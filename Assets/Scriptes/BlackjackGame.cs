@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class BlackjackGame : MonoBehaviour
 {
@@ -7,6 +8,8 @@ public class BlackjackGame : MonoBehaviour
     public Transform spawnCardPlayer; // Assignez les GameObjects SpawnCardPlayer et SpawnCardDealer
     public Transform spawnCardDealer;
     public float cardOffset = 100f; // Décalage entre les cartes
+    public TextMeshProUGUI playerHandValueText;
+    public TextMeshProUGUI dealerHandValueText;
 
     private Deck deck;
     private Player player;
@@ -32,7 +35,6 @@ public class BlackjackGame : MonoBehaviour
         DrawCardForDealer();
         DrawCardForDealer();
 
-        DisplayHands();
         CheckWinCondition();
     }
 
@@ -42,6 +44,7 @@ public class BlackjackGame : MonoBehaviour
         player.AddCardToHand(card);
         SpawnCardVisual(card, spawnCardPlayer, playerCardCount);
         playerCardCount++;
+        DisplayHands();
     }
 
     void DrawCardForDealer()
@@ -50,6 +53,7 @@ public class BlackjackGame : MonoBehaviour
         dealer.AddCardToHand(card);
         SpawnCardVisual(card, spawnCardDealer, dealerCardCount);
         dealerCardCount++;
+        DisplayHands();
     }
 
     void SpawnCardVisual(Card card, Transform spawnPoint, int cardIndex)
@@ -77,6 +81,9 @@ public class BlackjackGame : MonoBehaviour
     {
         Debug.Log($"{player.Name}'s Hand: {string.Join(", ", player.Hand)} (Value: {player.GetHandValue()})");
         Debug.Log($"{dealer.Name}'s Hand: {string.Join(", ", dealer.Hand)} (Value: {dealer.GetHandValue()})");
+
+        playerHandValueText.text = $"{player.GetHandValue()}";
+        dealerHandValueText.text = $"{dealer.GetHandValue()}";
     }
 
     void CheckWinCondition()
@@ -103,8 +110,7 @@ public class BlackjackGame : MonoBehaviour
     }
     public void PlayerHit()
     {
-        player.AddCardToHand(deck.DrawCard());
-        DisplayHands();
+        //player.AddCardToHand(deck.DrawCard());
         CheckWinCondition();
         //Display new card
         DrawCardForPlayer();
@@ -113,29 +119,40 @@ public class BlackjackGame : MonoBehaviour
     public void PlayerStand()
     {
         DealerTurn();
-        DisplayHands();
         DetermineWinner();
     }
     void DealerTurn()
     {
         while (dealer.GetHandValue() < 17)
         {
-            dealer.AddCardToHand(deck.DrawCard());
+            //dealer.AddCardToHand(deck.DrawCard());
+            DrawCardForDealer();
         }
     }
     void DetermineWinner()
     {
         int playerValue = player.GetHandValue();
         int dealerValue = dealer.GetHandValue();
-        if (dealerValue > 21 || playerValue > dealerValue)
+        Debug.Log("Score: " + playerValue + " - " + dealerValue);
+        if (playerValue > 21)
+        {
+            Debug.Log("Player busts! Dealer wins!");
+        }
+        else if (dealerValue > 21)
+        {
+            Debug.Log("Dealer busts! Player wins!");
+            Debug.Log("Player wins!");
+        }
+        else if (dealerValue > playerValue)
         {
             Debug.Log("Player wins!");
+            
         }
         else if (playerValue < dealerValue)
         {
             Debug.Log("Dealer wins!");
         }
-        else
+        else if (playerValue == dealerValue)
         {
             Debug.Log("It's a tie!");
         }
