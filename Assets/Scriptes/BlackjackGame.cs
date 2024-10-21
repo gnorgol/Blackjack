@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections.Generic;
 
 public class BlackjackGame : MonoBehaviour
 {
@@ -10,12 +11,17 @@ public class BlackjackGame : MonoBehaviour
     public float cardOffset = 100f; // Décalage entre les cartes
     public TextMeshProUGUI playerHandValueText;
     public TextMeshProUGUI dealerHandValueText;
+    public GameObject GameResultInfo;
 
     private Deck deck;
     private Player player;
     private Player dealer;
     private int playerCardCount = 0;
     private int dealerCardCount = 0;
+
+    private List<GameObject> CardObjectPlayer = new List<GameObject>();
+    private List<GameObject> CardObjectDealer = new List<GameObject>();
+
 
     void Start()
     {
@@ -36,13 +42,16 @@ public class BlackjackGame : MonoBehaviour
         DrawCardForDealer();
 
         CheckWinCondition();
+
+        GameResultInfo.SetActive(false);
     }
 
     void DrawCardForPlayer()
     {
         Card card = deck.DrawCard();
         player.AddCardToHand(card);
-        SpawnCardVisual(card, spawnCardPlayer, playerCardCount);
+        GameObject cardPlayer = SpawnCardVisual(card, spawnCardPlayer, playerCardCount);
+        CardObjectPlayer.Add(cardPlayer);
         playerCardCount++;
         DisplayHands();
     }
@@ -51,12 +60,13 @@ public class BlackjackGame : MonoBehaviour
     {
         Card card = deck.DrawCard();
         dealer.AddCardToHand(card);
-        SpawnCardVisual(card, spawnCardDealer, dealerCardCount);
+        GameObject cardDealer = SpawnCardVisual(card, spawnCardDealer, dealerCardCount);
+        CardObjectDealer.Add(cardDealer);
         dealerCardCount++;
         DisplayHands();
     }
 
-    void SpawnCardVisual(Card card, Transform spawnPoint, int cardIndex)
+    private GameObject SpawnCardVisual(Card card, Transform spawnPoint, int cardIndex)
     {
         // Instancie le prefab de la carte à l'emplacement spécifié
         GameObject cardObject = Instantiate(cardPrefab, spawnPoint.position, Quaternion.identity);
@@ -70,6 +80,10 @@ public class BlackjackGame : MonoBehaviour
 
         // Set Parent to the spawn point
         cardObject.transform.SetParent(spawnPoint);
+
+        return cardObject;
+
+
     }
 
     Sprite GetCardSprite(Card card)
@@ -137,24 +151,50 @@ public class BlackjackGame : MonoBehaviour
         if (playerValue > 21)
         {
             Debug.Log("Player busts! Dealer wins!");
+            DisplayGameResult("Dealer wins!", Color.red);
         }
         else if (dealerValue > 21)
         {
             Debug.Log("Dealer busts! Player wins!");
-            Debug.Log("Player wins!");
+            DisplayGameResult("Player wins!", Color.green);
         }
         else if (dealerValue > playerValue)
         {
-            Debug.Log("Player wins!");
-            
-        }
-        else if (playerValue < dealerValue)
-        {
             Debug.Log("Dealer wins!");
+            DisplayGameResult("Dealer wins!", Color.red);
         }
-        else if (playerValue == dealerValue)
+        else if (playerValue > dealerValue)
+        {
+            Debug.Log("Player wins!");
+            DisplayGameResult("Player wins!", Color.green);
+        }
+        else
         {
             Debug.Log("It's a tie!");
+            DisplayGameResult("It's a tie!", Color.white);
         }
+    }
+    private void DisplayGameResult(string result, Color color)
+    {
+        GameResultInfo.SetActive(true);
+        GameResultInfo.GetComponent<TextMeshProUGUI>().text = result;
+        GameResultInfo.GetComponent<TextMeshProUGUI>().color = color;
+    }
+    public void RestartGame()
+    {
+        playerCardCount = 0;
+        dealerCardCount = 0;
+        player.ClearHand();
+        dealer.ClearHand();
+        foreach (GameObject card in CardObjectPlayer)
+        {
+            Destroy(card);
+        }
+        foreach (GameObject card in CardObjectDealer)
+        {
+            Destroy(card);
+        }
+        deck = new Deck();
+        StartGame();
     }
 }
